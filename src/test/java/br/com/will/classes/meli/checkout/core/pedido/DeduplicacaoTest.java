@@ -1,5 +1,9 @@
 package br.com.will.classes.meli.checkout.core.pedido;
 
+import br.com.will.classes.meli.checkout.core.pedido.deduplicacao.Atualizado;
+import br.com.will.classes.meli.checkout.core.pedido.deduplicacao.Cancelado;
+import br.com.will.classes.meli.checkout.core.pedido.deduplicacao.Deduplicacao;
+import br.com.will.classes.meli.checkout.core.pedido.deduplicacao.PedidoDeduplicacao;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -20,7 +24,7 @@ class DeduplicacaoTest {
 
         var resultado = dedup.deduplicar(List.of(p1, p2));
 
-        assertThat(resultado).extracting(PedidoDeduplicacao::getId).containsExactly("p1");
+        assertThat(resultado).extracting(PedidoDeduplicacao::id).containsExactly("p1");
     }
 
     @Test
@@ -31,7 +35,7 @@ class DeduplicacaoTest {
 
         var resultado = dedup.deduplicar(List.of(p1, p2));
 
-        assertThat(resultado).extracting(PedidoDeduplicacao::getId).containsExactly("p1", "p2");
+        assertThat(resultado).extracting(PedidoDeduplicacao::id).containsExactly("p1", "p2");
     }
 
     @Test
@@ -58,12 +62,12 @@ class DeduplicacaoTest {
 
     @Test
     void descreveStringComoTexto() {
-        assertThat(dedup.descreverMensagem("MELI10")).isEqualTo("texto:MELI10");
+        assertThat(dedup.descreverMensagem(new Cancelado("p2", "fraude"))).isEqualTo("cancelado:p2:fraude");
     }
 
     @Test
     void descreveNumeroComoNumero() {
-        assertThat(dedup.descreverMensagem(42)).startsWith("numero:");
+        assertThat(dedup.descreverMensagem(new Atualizado("p1", new BigDecimal("42.00")))).isEqualTo("atualizado:p1:42.00");
     }
 
     @Test
