@@ -1,36 +1,21 @@
 package br.com.will.classes.meli.checkout.core.cupom;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import br.com.will.classes.meli.checkout.core.cupom.motivofalha.MotivoFalha;
+
 import java.util.List;
 
-public class ResultadoValidacao {
-    private final boolean valido;
-    private final List<String> motivos;
+public record ResultadoValidacao(boolean valido, List<MotivoFalha> motivos) {
 
-    private ResultadoValidacao(boolean valido, List<String> motivos) {
-        this.valido = valido;
-        this.motivos = Collections.unmodifiableList(new ArrayList<>(motivos));
+    public ResultadoValidacao {
+        motivos = List.copyOf(motivos);
     }
 
     public static ResultadoValidacao ok() {
-        return new ResultadoValidacao(true, Collections.emptyList());
+        return new ResultadoValidacao(true, List.of());
     }
 
-    public static ResultadoValidacao falha(List<String> motivos) {
+    public static ResultadoValidacao falha(List<MotivoFalha> motivos) {
         return new ResultadoValidacao(false, motivos);
     }
 
-    public boolean isValido() {
-        return valido;
-    }
-
-    public List<String> getMotivos() {
-        return motivos;
-    }
-
-    @Override
-    public String toString() {
-        return valido ? "OK" : "FALHA" + motivos;
-    }
 }

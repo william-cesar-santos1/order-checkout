@@ -1,62 +1,36 @@
 package br.com.will.classes.meli.checkout.core.cupom;
 
+import br.com.will.classes.meli.checkout.core.cupom.motivofalha.CategoriaInvalida;
+import br.com.will.classes.meli.checkout.core.cupom.motivofalha.Expirado;
+import br.com.will.classes.meli.checkout.core.cupom.motivofalha.MotivoFalha;
+import br.com.will.classes.meli.checkout.core.cupom.motivofalha.ValorMinimo;
+import br.com.will.classes.meli.checkout.core.cupom.regra.RegraCategoria;
+import br.com.will.classes.meli.checkout.core.cupom.regra.RegraValidade;
+import br.com.will.classes.meli.checkout.core.cupom.regra.RegraValorMinimo;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ValidadorCupom {
 
-    public ResultadoValidacao validarCupom(Cupom cupom, PedidoCupom pedidoCupom, LocalDate hoje) {
-        List<String> motivos = new ArrayList<>();
-
-        if (hoje.isAfter(cupom.getValidoAte())) {
-            motivos.add(formatarMotivo("EXPIRADO", cupom.getValidoAte().toString()));
-        }
-        if (pedidoCupom.getValor().compareTo(cupom.getValorMinimo()) < 0) {
-            motivos.add(formatarMotivo("VALOR_MINIMO", cupom.getValorMinimo().toPlainString()));
-        }
-        boolean valido = false;
-        for (String c : pedidoCupom.getCategorias()) {
-            if (cupom.getCategoriasElegiveis().contains(c)) {
-                valido = true;
-                break;
-            }
-        }
-        if (!valido) {
-            motivos.add(formatarMotivo("CATEGORIA", String.join(",", cupom.getCategoriasElegiveis())));
-        }
-
-        return motivos.isEmpty() ? ResultadoValidacao.ok() : ResultadoValidacao.falha(motivos);
-    }
-
-    private String formatarMotivo(String tipo, String detalhe) {
-        if (tipo.equals("EXPIRADO")) {
-            return "Cupom expirado em " + detalhe;
-        } else if (tipo.equals("VALOR_MINIMO")) {
-            return "PedidoCupom abaixo do valor mínimo R$ " + detalhe;
-        } else if (tipo.equals("CATEGORIA")) {
-            return "Categorias elegíveis: " + detalhe;
-        } else {
-            return "Motivo desconhecido: " + tipo;
-        }
+    public static String descreverMotivo(MotivoFalha m) {
+        return switch (m) {
+            case Expirado(LocalDate em) -> "Cupom expirado em " + em;
+            case ValorMinimo(BigDecimal v) -> "Pedido abaixo do valor mínimo R$ " + v.toPlainString();
+            case CategoriaInvalida(Set<String> el) -> "Categorias elegíveis: " + String.join(",", el);
+        };
     }
 
     public static void main(String[] args) {
-        ValidadorCupom v = new ValidadorCupom();
-        Cupom meli10 = new Cupom("MELI10", LocalDate.of(2026, 12, 31),
-                new BigDecimal("100.00"), new HashSet<>(Arrays.asList("eletronicos", "casa")));
+        var service = new CupomService(List.of(new RegraValidade(), new RegraValorMinimo(), new RegraCategoria()));
+        var meli10 = new Cupom("MELI10", LocalDate.of(2026, 12, 31), new BigDecimal("100.00"),
+                Set.of("eletronicos", "casa"));
 
-        PedidoCupom ok = new PedidoCupom(new BigDecimal("250.00"), new HashSet<>(Arrays.asList("eletronicos")));
-        PedidoCupom barato = new PedidoCupom(new BigDecimal("50.00"), new HashSet<>(Arrays.asList("eletronicos")));
-        PedidoCupom outraCategoria = new PedidoCupom(new BigDecimal("250.00"), new HashSet<>(Arrays.asList("moda")));
-
-        LocalDate hoje = LocalDate.of(2026, 5, 24);
-        System.out.println(v.validarCupom(meli10, ok, hoje));
-        System.out.println(v.validarCupom(meli10, barato, hoje));
-        System.out.println(v.validarCupom(meli10, outraCategoria, hoje));
+        var pedido = new PedidoCupom(new BigDecimal("50.00"), Set.of("moda"));
+        var r = service.validar(meli10, pedido, LocalDate.of(2027, 1, 1));
+        r.motivos().forEach(m -> System.out.println(descreverMotivo(m)));
     }
 
 }
