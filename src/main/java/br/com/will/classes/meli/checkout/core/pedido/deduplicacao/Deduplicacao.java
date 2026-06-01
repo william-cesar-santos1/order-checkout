@@ -33,20 +33,12 @@ public class Deduplicacao {
         };
     }
 
-    public List<PedidoDeduplicacao> ultimosNVistosDescendente(List<PedidoDeduplicacao> pedidoDeduplicacaos, int n) {
-        LinkedList<PedidoDeduplicacao> fila = new LinkedList<>(pedidoDeduplicacaos);
-        List<PedidoDeduplicacao> resultado = new ArrayList<>();
-        Iterator<PedidoDeduplicacao> it = fila.descendingIterator();
-        int contador = 0;
-        while (it.hasNext() && contador < n) {
-            resultado.add(it.next());
-            contador++;
-        }
-        return resultado;
+    public List<PedidoDeduplicacao> ultimosNVistosDescendente(SequencedCollection<PedidoDeduplicacao> pedidos, int n) {
+        return pedidos.reversed().stream().limit(n).toList();
     }
 
-    public Map.Entry<String, PedidoDeduplicacao> primeiroDoMapa(HashMap<String, PedidoDeduplicacao> ordenado) {
-        return ordenado.entrySet().stream().findFirst().orElse(null);
+    public Map.Entry<String, PedidoDeduplicacao> primeiroDoMapa(LinkedHashMap<String, PedidoDeduplicacao> ordenado) {
+        return ordenado.firstEntry();
     }
 
     public static void main(String[] args) {
