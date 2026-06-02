@@ -48,8 +48,8 @@
                       habilitar StructuredTaskScope. Já vem comentado para que o
                       build do baseline (Blocos 1-3) rode sem warning de preview.
                     -->
-                    <!-- <compilerArgs><arg>- -enable-preview</arg></compilerArgs> -->
-                    <!-- <release>21</release> -->
+                    <compilerArgs><arg>--enable-preview</arg></compilerArgs>
+                    <release>21</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -58,7 +58,7 @@
                 <version>3.2.5</version>
                 <configuration>
                     <!-- Idem: descomente quando ligar preview. -->
-                    <!-- <argLine>- -enable-preview</argLine> -->
+                    <argLine>--enable-preview</argLine>
                 </configuration>
             </plugin>
             <plugin>
