@@ -6,46 +6,29 @@ import java.util.*;
 public class ContagemEventos {
 
     public List<ContagemPorJanela> contar(List<Evento> eventos) {
-        List<Evento> ordenados = new ArrayList<>(eventos);
-        ordenados.sort((a, b) -> a.getTimestamp().compareTo(b.getTimestamp()));
-
-        Map<Instant, Long> mapaContagens = new LinkedHashMap<>();
-        for (Evento e : ordenados) {
-            long epochMin = e.getTimestamp().getEpochSecond() / 60;
-            Instant inicio = Instant.ofEpochSecond(epochMin * 60);
-            mapaContagens.merge(inicio, 1L, Long::sum);
-        }
-
-        List<ContagemPorJanela> resultado = new ArrayList<>();
-        for (Map.Entry<Instant, Long> e : mapaContagens.entrySet()) {
-            resultado.add(new ContagemPorJanela(e.getKey(), e.getValue()));
-        }
-        return resultado;
+        LinkedHashMap<Instant, Long> agrupado = new LinkedHashMap<>();
+        eventos.stream()
+                .sorted((a, b) -> a.timestamp().compareTo(b.timestamp()))
+                .forEach(e -> {
+                    long minutoEpoch = e.timestamp().getEpochSecond() / 60;
+                    Instant inicio = Instant.ofEpochSecond(minutoEpoch * 60);
+                    agrupado.merge(inicio, 1L, Long::sum);
+                });
+        return agrupado.entrySet().stream()
+                .map(en -> new ContagemPorJanela(en.getKey(), en.getValue()))
+                .toList();
     }
 
-    public List<ContagemPorJanela> listarMaisRecentesPrimeiro(List<ContagemPorJanela> janelas) {
-        List<ContagemPorJanela> copia = new ArrayList<>(janelas);
-        Collections.reverse(copia);
-        return copia;
+    public List<ContagemPorJanela> listarMaisRecentesPrimeiro(SequencedCollection<ContagemPorJanela> janelas) {
+        return janelas.reversed().stream().toList();
     }
 
-    public List<ContagemPorJanela> ultimasN(List<ContagemPorJanela> janelas, int n) {
-        List<ContagemPorJanela> resultado = new ArrayList<>();
-        ListIterator<ContagemPorJanela> it = janelas.listIterator(janelas.size());
-        int c = 0;
-        while (it.hasPrevious() && c < n) {
-            resultado.add(it.previous());
-            c++;
-        }
-        return resultado;
+    public List<ContagemPorJanela> ultimasN(SequencedCollection<ContagemPorJanela> janelas, int n) {
+        return janelas.reversed().stream().limit(n).toList();
     }
 
-    public Map.Entry<Instant, Long> pollFirstEntryManual(LinkedHashMap<Instant, Long> mapa) {
-        Iterator<Map.Entry<Instant, Long>> it = mapa.entrySet().iterator();
-        if (!it.hasNext()) return null;
-        Map.Entry<Instant, Long> primeira = it.next();
-        mapa.remove(primeira.getKey());
-        return primeira;
+    public Map.Entry<Instant, Long> pollMaisAntiga(LinkedHashMap<Instant, Long> mapa) {
+        return mapa.pollFirstEntry();
     }
 
     public static void main(String[] args) {

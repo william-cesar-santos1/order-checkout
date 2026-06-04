@@ -3,15 +3,11 @@ package br.com.will.classes.meli.checkout.core.pedido.processar;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ProcessadorPedidos {
-
-    private final ExecutorService executor = Executors.newFixedThreadPool(50);
 
     public PedidoEnriquecido enriquecer(String idPedido) throws InterruptedException {
         try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
@@ -46,12 +42,7 @@ public class ProcessadorPedidos {
         }
     }
 
-    public void encerrar() {
-        executor.shutdown();
-    }
-
     // --- Serviços externos simulados ---
-
     private boolean chamarServicoFraude(String idPedido) throws InterruptedException {
         Thread.sleep(dormirEntre(100, 200));
         return !idPedido.endsWith("9");
@@ -82,7 +73,6 @@ public class ProcessadorPedidos {
 
         System.out.println("Total processado: " + resultado.size());
         System.out.println("Wall time: " + Duration.ofNanos(fim - ini).toMillis() + " ms");
-        proc.encerrar();
     }
 
 }
